@@ -161,7 +161,7 @@ app.post('/new/song', function(req, res) {
 
     songFile = req.files.songFile;
     var rString = randomString(7, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-    songFile.mv('/home/grimmie/uploads/songs/'+req.body.fb_id+rString+'.mp3', function(err) {
+    songFile.mv('/var/www/html/uploads/songs/'+req.body.fb_id+rString+'.mp3', function(err) {
         if (err) {
             res.status(500).send(err);
         }
@@ -169,7 +169,7 @@ app.post('/new/song', function(req, res) {
         	var song  = { 
 					  user_id: req.body.fb_id,
 					  label: req.body.filename,
-					  href: "file:///home/nishant/grimmie/"+req.body.fb_id+rString+".mp3",
+					  href: "http://139.59.1.150/uploads/songs/"+req.body.fb_id+rString+".mp3",
 					  created_at: moment().format('YYYY-MM-DD HH:mm:ss')
 			    };
 			console.log(song);
