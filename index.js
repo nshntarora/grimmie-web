@@ -146,6 +146,6 @@ app.post('/new/song', function(req, res) {
 });
 
 
-app.listen(5000,function(){
-	console.log("Magic happening on port 5000");
+app.listen(process.env.PORT || 80,function(){
+	console.log("Magic happening on port 80");
 })
