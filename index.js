@@ -1,6 +1,8 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var mysql = require("mysql");
+var moment = require('moment-timezone');
+moment.tz.setDefault("Asia/Kolkata");
 var fileUpload = require('express-fileupload');
 var app = express();
 
@@ -26,12 +28,6 @@ con.connect(function(err){
   		console.log('Connection established');
 	});
 
-	con.end(function(err) {
-	  console.log("connection ended");
-	  // The connection is terminated gracefully
-	  // Ensures all previously enqueued queries are still
-	  // before sending a COM_QUIT packet to the MySQL server.
-	});
 
 
 function randomString(length, chars) {
@@ -105,14 +101,20 @@ app.post('/set/profile',function(req,res){
 
 
 
-//Endpoint to upload a new song to user profile
-//change the directory of upload to the directory we want the files on at the server
-//Also, change permissions for the directory so that anyone could listen to the songs
-//For the request remember to set the encoding header to multipart/form-data
-//This endpoint uploads one song.
+/*
+
+Endpoint to upload a new song to user profile
+change the directory of upload to the directory we want the files on at the server
+Also, change permissions for the directory so that anyone could listen to the songs
+For the request remember to set the encoding header to multipart/form-data
+This endpoint uploads one song.
+
+The request body should contain the file with param name songFile, the id of the
+user in param fb_id and the name of the file in the param filename
+
+*/
+
 app.post('/new/song', function(req, res) {
-    var fb_id = req.body.fb_id;
-    var filename = req.body.filename;
     var songFile;
     if (!req.files) {
         res.send('No files were uploaded.');
@@ -121,11 +123,23 @@ app.post('/new/song', function(req, res) {
 
     songFile = req.files.songFile;
     var rString = randomString(7, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-    songFile.mv('/home/nishant/grimmie/'+fb_id+rString+'.mp3', function(err) {
+    songFile.mv('/home/nishant/grimmie/'+req.body.fb_id+rString+'.mp3', function(err) {
         if (err) {
             res.status(500).send(err);
         }
         else {
+        	var song  = { 
+					  user_id: req.body.fb_id,
+					  label: req.body.filename,
+					  href: "file:///home/nishant/grimmie/"+req.body.fb_id+rString+".mp3",
+					  created_at: moment().format('YYYY-MM-DD HH:mm:ss')
+			    };
+			console.log(song);
+			con.query('INSERT INTO songs SET ?', song , function (err, result) {
+				if(err){
+					console.log(err);
+				}
+			});
             res.send('File uploaded!');
         }
     });
