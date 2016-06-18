@@ -161,7 +161,7 @@ app.post('/new/song', function(req, res) {
 
     songFile = req.files.songFile;
     var rString = randomString(7, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-    songFile.mv('/home/nishant/grimmie/'+req.body.fb_id+rString+'.mp3', function(err) {
+    songFile.mv('/home/grimmie/uploads/songs/'+req.body.fb_id+rString+'.mp3', function(err) {
         if (err) {
             res.status(500).send(err);
         }
