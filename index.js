@@ -52,15 +52,25 @@ app.post('/new/user',function(req,res){
 	var name = req.body.name;
 	var description = req.body.description;
 	var country = req.body.country;
-	res.send(fb_token+fb_id+name+description+country);
-	console.log(req.body);
+	if(fb_id && fb_token && name && description && country){
+		res.send(fb_token+fb_id+name+description+country);
+		console.log(req.body);
+	}
+	else{
+		res.send("One or more values are empty. Invalid request.");
+	}
 });
 
 //Endpoint to update the latitude and longitude of a user
 app.post('/set/location',function(req,res){
 	var lat = req.body.lat;
 	var lon = req.body.lon;
-	console.log(lat+lon);
+	if(lat && lon){
+		console.log(lat+lon);	
+	}
+	else{
+		res.send("One or more values are empty. Invalid request.");
+	}
 });
 
 //Endpoint to update the instruments, genre and influences of a user
