@@ -1,14 +1,12 @@
 var express = require('express');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 var mysql = require("mysql");
-
+var fileUpload = require('express-fileupload');
 var app = express();
 
+app.use(fileUpload());
+
 app.use(bodyParser());
-
-var checkempty = function(){
-}
-
 
 // First you need to create a connection to the db
 var con = mysql.createConnection({
@@ -36,6 +34,19 @@ con.connect(function(err){
 	});
 
 
+function randomString(length, chars) {
+    var result = '';
+    for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+    return result;
+}
+
+
+var responseObject = {
+	status: 200,
+	text: "success",
+	errorcode: ""
+}
+
 
 //Remember to set Content-Type: application/x-www-form-urlencoded for the POST request. Pleeeease!
 
@@ -53,11 +64,13 @@ app.post('/new/user',function(req,res){
 	var description = req.body.description;
 	var country = req.body.country;
 	if(fb_id && fb_token && name && description && country){
-		res.send(fb_token+fb_id+name+description+country);
-		console.log(req.body);
+		res.send(responseObject);
 	}
 	else{
-		res.send("One or more values are empty. Invalid request.");
+		responseObject.status = 400;
+		responseObject.text = "failure"
+		responseObject.errorcode = "ERR01"
+		res.send(responseObject);
 	}
 });
 
@@ -69,7 +82,10 @@ app.post('/set/location',function(req,res){
 		console.log(lat+lon);	
 	}
 	else{
-		res.send("One or more values are empty. Invalid request.");
+		responseObject.status = 400;
+		responseObject.text = "failure"
+		responseObject.errorcode = "ERR01"
+		res.send(responseObject);
 	}
 });
 
@@ -86,6 +102,35 @@ app.post('/set/profile',function(req,res){
 	console.log(genre1+genre2+genre3);
 	console.log(influences);
 });
+
+
+
+//Endpoint to upload a new song to user profile
+//change the directory of upload to the directory we want the files on at the server
+//Also, change permissions for the directory so that anyone could listen to the songs
+//For the request remember to set the encoding header to multipart/form-data
+//This endpoint uploads one song.
+app.post('/new/song', function(req, res) {
+    var fb_id = req.body.fb_id;
+    var filename = req.body.filename;
+    var songFile;
+    if (!req.files) {
+        res.send('No files were uploaded.');
+        return;
+    }
+
+    songFile = req.files.songFile;
+    var rString = randomString(7, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+    songFile.mv('/home/nishant/grimmie/'+fb_id+rString+'.mp3', function(err) {
+        if (err) {
+            res.status(500).send(err);
+        }
+        else {
+            res.send('File uploaded!');
+        }
+    });
+});
+
 
 app.listen(5000,function(){
 	console.log("Magic happening on port 5000");
