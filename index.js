@@ -3,7 +3,10 @@ var bodyParser = require('body-parser');
 var mysql = require("mysql");
 var moment = require('moment-timezone');
 moment.tz.setDefault("Asia/Kolkata");
+<<<<<<< HEAD
 var fileUpload = require('express-fileupload');
+=======
+>>>>>>> SQL_Queries
 var app = express();
 
 app.use(fileUpload());
@@ -28,6 +31,15 @@ con.connect(function(err){
   		console.log('Connection established');
 	});
 
+<<<<<<< HEAD
+=======
+	/*con.end(function(err) {
+	  console.log("connection ended");
+	  // The connection is terminated gracefully
+	  // Ensures all previously enqueued queries are still
+	  // before sending a COM_QUIT packet to the MySQL server.
+	}); */
+>>>>>>> SQL_Queries
 
 
 function randomString(length, chars) {
@@ -48,18 +60,35 @@ var responseObject = {
 
 
 app.get('/',function(req,res){
-	res.send("Welcome to the Grimmie API");
+	con.query('SELECT * FROM `users` WHERE `fb_id` = ?', ['121'], function (error, results, fields) {
+		console.log(results);
+		res.send(results);
+  // error will be an Error if one occurred during the query 
+  // results will contain the results of the query 
+  // fields will contain information about the returned results fields (if any) 
+});
+//	res.send("Welcome to the Grimmie API");
 });
 
 //Endpoint to create a new user with the FB ID and token recieved. There are separate endpoints to update instruments and other data.
 //Remember to set Content-Type: application/x-www-form-urlencoded for the POST request. Pleeeease!
 app.post('/new/user',function(req,res){
-	var fb_id = req.body.fb_id;
-	var fb_token = req.body.fb_token;
-	var name = req.body.name;
-	var description = req.body.description;
-	var country = req.body.country;
-	if(fb_id && fb_token && name && description && country){
+	var user  = { 
+					  fb_id: req.body.fb_id ,
+					  fb_token: req.body.fb_token,
+					  name:req.body.name,
+					  description:req.body.description,
+					  country:req.body.country,
+					  lat: req.body.lat,
+					  lon: req.body.lon,
+					  instrument1: req.body.instrument1,
+					  genre1: req.body.genre1,
+					  influences: req.body.influences,
+					  created_at: moment().format('YYYY-MM-DD HH:mm:ss')
+			    };
+	if(req.body.fb_id && req.body.fb_token && req.body.name){
+		con.query('INSERT INTO users SET ?', user , function (err, result) {
+		});
 		res.send(responseObject);
 	}
 	else{
@@ -72,12 +101,17 @@ app.post('/new/user',function(req,res){
 
 //Endpoint to update the latitude and longitude of a user
 app.post('/set/location',function(req,res){
-	var lat = req.body.lat;
-	var lon = req.body.lon;
-	if(lat && lon){
-		console.log(lat+lon);	
+	var user  = { 				
+					  lat: req.body.lat,
+					  lon: req.body.lon,					  
+					  updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
+			    };
+	if(req.body.lat && req.body.lon){
+		con.query('UPDATE users  SET ?  WHERE `fb_id` =  '+ req.body.fb_id , user , function (err, result) {
+		});
+		res.send(responseObject);
 	}
-	else{
+	else {
 		responseObject.status = 400;
 		responseObject.text = "failure"
 		responseObject.errorcode = "ERR01"
@@ -87,18 +121,25 @@ app.post('/set/location',function(req,res){
 
 //Endpoint to update the instruments, genre and influences of a user
 app.post('/set/profile',function(req,res){
-	var instrument1 = req.body.instrument1;
-	var instrument2 = req.body.instrument2;
-	var instrument3 = req.body.instrument3;
-	var genre1 = req.body.genre1;
-	var genre2 = req.body.genre2;
-	var genre3 = req.body.genre3;
-	var influences = req.body.influences;
-	console.log(instrument1+instrument2+instrument3);
-	console.log(genre1+genre2+genre3);
-	console.log(influences);
+	var user  = { 			
+					  description:req.body.description,	
+					  instrument1: req.body.instrument1,
+				      instrument2: req.body.instrument2,
+					  instrument3 : req.body.instrument3,
+					  genre1 : req.body.genre1,
+				 	  genre2 : req.body.genre2,
+			   	  	  genre3 : req.body.genre3,
+					  influences : req.body.influences,
+					  lat: req.body.lat,
+					  lon: req.body.lon,					  
+					  updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
+			    };
+    con.query('UPDATE users  SET ?  WHERE `fb_id` =  '+ req.body.fb_id , user , function (err, result) {
+	});
+	res.send("User updated!");
+	console.log(user);
+	console.log("User Updated!");
 });
-
 
 
 /*
@@ -145,7 +186,13 @@ app.post('/new/song', function(req, res) {
     });
 });
 
-
-app.listen(process.env.PORT || 80,function(){
-	console.log("Magic happening on port 80");
+app.post('/delete/user',function(req,res){
+	var user = { activated: 0 };
+	 con.query('UPDATE users  SET ?  WHERE `fb_id` =  '+ req.body.fb_id , user , function (err, result) {
+	});
+	res.send(responseObject);
 })
+
+app.listen(5000,function(){
+	console.log("Magic happening on port 5000");
+});
