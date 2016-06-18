@@ -3,10 +3,7 @@ var bodyParser = require('body-parser');
 var mysql = require("mysql");
 var moment = require('moment-timezone');
 moment.tz.setDefault("Asia/Kolkata");
-<<<<<<< HEAD
 var fileUpload = require('express-fileupload');
-=======
->>>>>>> SQL_Queries
 var app = express();
 
 app.use(fileUpload());
@@ -30,16 +27,6 @@ con.connect(function(err){
   	else
   		console.log('Connection established');
 	});
-
-<<<<<<< HEAD
-=======
-	/*con.end(function(err) {
-	  console.log("connection ended");
-	  // The connection is terminated gracefully
-	  // Ensures all previously enqueued queries are still
-	  // before sending a COM_QUIT packet to the MySQL server.
-	}); */
->>>>>>> SQL_Queries
 
 
 function randomString(length, chars) {
