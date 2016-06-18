@@ -10,6 +10,16 @@ app.use(fileUpload());
 
 app.use(bodyParser());
 
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length; i; i -= 1) {
+        j = Math.floor(Math.random() * i);
+        x = a[i - 1];
+        a[i - 1] = a[j];
+        a[j] = x;
+    }
+}
+
 // First you need to create a connection to the db
 var con = mysql.createConnection({
   host: "139.59.1.150",
@@ -175,9 +185,94 @@ app.post('/new/song', function(req, res) {
 
 app.post('/delete/user',function(req,res){
 	var user = { activated: 0 };
-	 con.query('UPDATE users  SET ?  WHERE `fb_id` =  '+ req.body.fb_id , user , function (err, result) {
+	con.query('UPDATE users  SET ?  WHERE `fb_id` =  '+ req.body.fb_id , user , function (err, result) {
 	});
 	res.send(responseObject);
+})
+
+
+app.post('/swipe/right',function(req,res){
+
+
+	con.query("SELECT * FROM right_swipes WHERE liked_id = "+req.query.current_liked_id+" AND liker_id = " + req.query.current_liker_id , function (error, results, fields) {
+			if(results)
+			{
+				console.log("Match!");
+				res.send("Match!")
+			}
+			else
+			{
+				console.log("Not yet matched!");
+				res.send("Not yet matched!");
+			}
+	});
+})
+
+app.post('/swipe/left',function(req,res){
+
+	var rejection = {
+						disliker :req.body.disliker,
+						disliked : req.body.disliked
+					}
+
+	con.query('INSERT INTO rejections SET ?', rejection , function (err, result) {
+	});
+	res.send("Disliked!");
+	console.log(rejection);
+	console.log("Disliked!");
+	
+})
+
+
+app.get('/cards/fetch', function(req,res){
+
+	
+	//console.log(req.query.fb_id);
+	con.query("SELECT disliked FROM rejections WHERE disliker = ? ", req.query.fb_id  , function (error, disliked, fields) {
+		DislikedArrString = JSON.stringify(disliked);
+		var disliked_arr = JSON.parse(DislikedArrString);
+		var arr = [];
+		for(i=0;i<disliked_arr.length;i++)
+		{
+			arr[i] = disliked_arr[i]['disliked'];
+		}
+
+		
+		
+		con.query("SELECT liked_id FROM right_swipes WHERE liker_id = ? ", req.query.fb_id  , function (error, liked, fields) {
+
+			LikedArrString = JSON.stringify(liked);
+			var liked_arr = JSON.parse(LikedArrString);
+			console.log(liked_arr);
+			
+			var x=0;
+				for(i=disliked_arr.length;i<disliked_arr.length+liked_arr.length;i++)
+				{
+					arr[i] = liked_arr[x++]['liked_id'];
+				}
+				con.query("SELECT * FROM users WHERE fb_id NOT IN ("+arr+")", function (error, results, fields) {
+		     	shuffle(results);
+				console.log(results);		
+				res.send(results);
+				});
+			
+		});		
+	});
+
+})
+
+app.get('/checkuser', function(req,res){
+	con.query('SELECT * FROM `users` WHERE `fb_id` = ?', req.query.fb_id , function (error, results, fields) {
+	if(results.length <= 0)
+    {
+    	console.log("Not Registered");
+		res.send({status: 0});
+	}
+	else
+	{	console.log("Registered!");
+		res.send({status: 1});
+	}
+});
 })
 
 app.listen(5000,function(){
