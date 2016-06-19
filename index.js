@@ -252,8 +252,10 @@ app.get('/cards/fetch', function(req,res){
 				}
 				con.query("SELECT * FROM users WHERE fb_id NOT IN ("+arr+")", function (error, results, fields) {
 		     	shuffle(results);
-				console.log(results);		
-				res.status(200).send(results);
+		     	resultsString = JSON.stringify(results);
+		     	var resultsObjArr = JSON.parse(resultsString);
+				console.log(resultsObjArr);		
+				res.status(200).send(resultsObjArr);
 				});
 			
 		});		
